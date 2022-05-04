@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from .models import User, Message
 from django.db.models import Q
+from django.shortcuts import redirect
+
 
 import json
 
@@ -13,31 +15,38 @@ import json
 def chatroom(request, pk:int):
     other_user = get_object_or_404(User, pk=pk)  
     messages = Message.objects.filter(
-        Q(receiver=other_user, sender=request.user) | Q(receiver=request.user, sender=other_user)
+       Q(receiver=request.user, sender=other_user)
     )  
     messages.update(seen=True)
-
+    messages = messages | Message.objects.filter(Q(receiver=other_user, sender=request.user) )
     return render(request, "chatroom.html", {"other_user": other_user, "messages": messages})
 
 
-@login_required
 
+
+@login_required
 def ajax_load_messages(request, pk):
     other_user = get_object_or_404(User, pk=pk)
-    messages = Message.objects.filter(seen=False)
-    messages.update(seen=True)
+    messages = Message.objects.filter(seen=False).filter(
+       Q(receiver=request.user, sender=other_user)
+    )
     message_list = [{
-        "sender": message.sender.username,
+        "sender" : message.sender.username,
         "message": message.message,
-        "sent": message.sender == request.user
-    } for message in messages]
+        "sent" : message.sender == request.user
+
+    }  for message in messages ]
+    messages.update(seen=True)
+
+        
     if request.method == "POST":
         message = json.loads(request.body)
-        m = message.objects.create(receiver=other_user, sender=request.user, message=message)
+        m = Message.objects.create(receiver=other_user, sender=request.user, message=message)
         message_list.append({
-            "sender": request.user.username,
-            "message": m.message,
-            "sent": True,
+            "sender" : request.user.username,
+            "message" : m.message,
+            "sent" : True,
         })
-
-        return JsonResponse(message_list, safe=False)
+    
+    print(message_list)
+    return JsonResponse(message_list , safe=False)

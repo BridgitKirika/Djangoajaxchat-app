@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,13 +12,12 @@
         margin: 0;
     }
 
-    body{
+    body {
         display: flex;
         height: 100vh;
         background: #666;
         flex-direction: column;
     }
-    
     .header{
         padding: 10px 5%;
         background: #444;
@@ -50,30 +49,39 @@
         padding: 20px 40px;
         background: gold;
     }
-</style>
+
+  
+    .message .content{
+        background: #444;
+        padding: 5px 10px;
+        border-radius: 10px;
+        max-width: 80%;
+        display: inline-block;
+    }
+    
+    </style>
 </head>
 
 
 <body>
+
     <div class="header">{{ other_user.username }}</div>
     <div class="messages-area">
         {% for message in messages %}
 
-        <div class="message {% if message.sender == request.user %}right{% else %}left{% endif %}">
-            
-            <div class="sent-by">{{ message.sender.username}} </div>
-            <div class="content"> {{ message.message }}</div>
-        </div>
-
-        {% endfor %}
+        <div class="message
+        {% if message.sender == request.user %}right{% else %}left{% endif %}">
+        
+        <div class="sent-by">{{ message.sender.username}}</div>
+        <div class="content">{{ message.message }}</div>
     </div>
-
+    {% endfor %}
+    </div>
     <div class="input-area">
         <input type="text" id="message-input">
         <button id="send-btn">Send</button>
     </div>
-
-
+    
 </body>
 <script>
     let message_send_btn = document.getElementById("send-btn");
@@ -95,7 +103,7 @@
         },
         body: JSON.stringify(message)
      }
-     ).then(e => e.json()).then(message =>{
+     ).then(e => e.json()).then(messages =>{
          for (message of messages ){
              construct_message(message);
          }
@@ -130,6 +138,7 @@
         div.scrollIntoView()
     }
     message_send_btn.addEventListener('click', send_message);
+    setInterval(load_messages, 2000);
      
 </script>
 
